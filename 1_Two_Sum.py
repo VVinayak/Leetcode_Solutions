@@ -1,5 +1,5 @@
-19 / 19 test cases passed.
-Runtime: 618 ms
+#19 / 19 test cases passed.
+#Runtime: 618 ms
 
 class Solution(object):
     def twoSum(self, nums, target):
