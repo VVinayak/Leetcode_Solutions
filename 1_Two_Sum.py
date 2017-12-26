@@ -14,6 +14,8 @@ class Solution(object):
             complement =  target - nums[i]
             if complement in table.values() and table.keys()[table.values().index(complement)] != i:
                 result = [i, table.keys()[table.values().index(complement)]]
-                return result
+                break
+                
+        return result
                 
              
