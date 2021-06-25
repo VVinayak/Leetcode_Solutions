@@ -1,0 +1,70 @@
+# More efficient if threading is used: https://stackoverflow.com/questions/3490173/how-can-i-speed-up-fetching-pages-with-urllib2-in-python
+
+from html.parser import HTMLParser
+import urllib.request
+from urllib.parse import urlparse, urlunparse, urljoin
+
+
+class HyperlinkParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.hyperlinks = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "a" and "href" in attrs:
+            self.hyperlinks.append(attrs["href"])
+
+
+def get_hyperlinks(url):
+    """
+    Takes in a URL and outputs all URLs clickable from it which are on the same domain
+    """
+    try:
+        with urllib.request.urlopen(url) as response:
+            if not response.info().get('Content-Type').startswith("text/html"):
+                # Don't want to download zips, pdfs, etc.
+                return []
+            html = response.read().decode('utf-8')
+    except urllib.error.HTTPError:
+        # Ignore broken links
+        return []
+
+    parser = HyperlinkParser()
+    parser.feed(html)
+    parsed = urlparse(url)
+    results = []
+    for link in parser.hyperlinks:
+        parsed2 = urlparse(urljoin(url, link))
+        if parsed2.netloc == parsed.netloc:
+            results.append(urlunparse(parsed2))
+    return results
+
+
+def crawl(url):
+    # your code here
+    visited = list()
+    return DFS(url, visited)
+
+def DFS(url, visited):
+    children = get_hyperlinks(url)
+    if len(children) != 0:
+        for child in children:
+            if child not in visited:
+                print("child", child)
+                visited.append(child)
+                DFS(child, visited)
+    else:
+        return visited
+
+
+
+"""
+You should fill in the above function, `crawl()` that will be given the root URL of a domain,
+in this case "https://www.openai.com", and print out all unique urls under
+the domain reachable from the root.
+A URL is reachable if it is clickable from the root, or clickable from another reachable URL.
+You will be provided a function, `get_hyperlinks(url)` that will return a list of links at the given URL.
+"""
+
+print(crawl("https://www.openai.com"))
